@@ -45,8 +45,8 @@ func (c *Container) Provide(f interface{}) error {
 
 	// Get the output parameter
 	results := make([]reflect.Type, vt.NumOut())
-	for i := 0; i < vt.NumIn(); i++ {
-		results[i] = vt.In(i)
+	for i := 0; i < vt.NumOut(); i++ {
+		results[i] = vt.Out(i)
 	}
 
 	provider := provider{
@@ -106,15 +106,17 @@ func (c *Container) buildParam(param reflect.Type) (reflect.Value, error) {
 	return c.results[param], nil
 }
 
-func (c *Container) Invoke(f reflect.Type) error {
-	if f.Kind() == reflect.Func {
+func (c *Container) Invoke(f interface{}) error {
+	v := reflect.ValueOf(f)
+	if v.Kind() != reflect.Func {
 		return fmt.Errorf("f must be a funcion")
 	}
 
+	vt := v.Type()
 	var err error
-	params := make([]reflect.Value, f.NumIn())
+	params := make([]reflect.Value, vt.NumIn())
 	for i := range params {
-		params[i], err = c.buildParam(f.In(i))
+		params[i], err = c.buildParam(vt.In(i))
 		if err != nil {
 			return err
 		}
